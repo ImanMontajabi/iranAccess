@@ -12,6 +12,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+type Cache struct {
+	my      sync.RWMutex
+	results []DomainCheckResult
+}
+
 type DomainCheckResult struct {
 	Domain     string `json:"domain"`
 	StatusCode int    `json:"statusCode"`
@@ -22,6 +27,7 @@ type DomainCheckResult struct {
 func main() {
 	app := fiber.New()
 	app.Get("/check", checkDomainsHandler)
+	app.Static("/", "./public")
 	fmt.Println("Server is up on port 3000")
 	log.Fatal(app.Listen(":3000"))
 }
@@ -37,17 +43,18 @@ func checkDomainsHandler(c *fiber.Ctx) error {
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
 	if err != nil {
-		c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Couldn't read the CSV records",
 		})
 	}
+	domainsToCheck := records[1:]
 	if len(records) == 0 {
 		return c.JSON([]DomainCheckResult{})
 	}
 
 	resultChannel := make(chan DomainCheckResult)
 	wg := sync.WaitGroup{}
-	for _, record := range records {
+	for _, record := range domainsToCheck {
 		wg.Add(1)
 		go func(d string) {
 			defer wg.Done()
