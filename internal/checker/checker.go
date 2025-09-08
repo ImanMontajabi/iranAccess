@@ -3,13 +3,13 @@ package checker
 import (
 	"encoding/csv"
 	"fmt"
+	"iranAccess/internal/cache"
+	"iranAccess/internal/models"
 	"log"
 	"net/http"
 	"os"
 	"sync"
 	"time"
-	"iranAccess/internal/models"
-	"iranAccess/internal/cache"
 )
 
 // DomainChecker handles domain checking operations
@@ -32,7 +32,7 @@ func NewDomainChecker(csvPath string) *DomainChecker {
 func (dc *DomainChecker) CheckDomain(domain string) models.DomainCheckResult {
 	url := "https://" + domain
 	resp, err := dc.httpClient.Get(url)
-	
+
 	result := models.DomainCheckResult{Domain: domain}
 
 	if err != nil {
@@ -40,11 +40,11 @@ func (dc *DomainChecker) CheckDomain(domain string) models.DomainCheckResult {
 		result.IsUp = false
 		return result
 	}
-	
+
 	defer resp.Body.Close()
 	result.StatusCode = resp.StatusCode
 	result.IsUp = resp.StatusCode >= 200 && resp.StatusCode < 400
-	
+
 	return result
 }
 

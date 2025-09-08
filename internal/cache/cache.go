@@ -1,8 +1,8 @@
 package cache
 
 import (
-	"sync"
 	"iranAccess/internal/models"
+	"sync"
 )
 
 // Cache holds domain check results with thread-safe access
@@ -20,7 +20,7 @@ var DomainCache = &Cache{
 func (c *Cache) GetResults() []models.DomainCheckResult {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	resultCopy := make([]models.DomainCheckResult, len(c.results))
 	copy(resultCopy, c.results)
 	return resultCopy
